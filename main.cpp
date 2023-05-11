@@ -51,8 +51,8 @@ int main(void)
 
     glfwMakeContextCurrent(window); CHECK_GL_ERROR();
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); CHECK_GL_ERROR();
-    glfwSetCursorPosCallback(window, mouse_callback); CHECK_GL_ERROR();
-    glfwSetScrollCallback(window, scroll_callback); CHECK_GL_ERROR();
+    //glfwSetCursorPosCallback(window, mouse_callback); CHECK_GL_ERROR();
+    //glfwSetScrollCallback(window, scroll_callback); CHECK_GL_ERROR();
 
     if (glewInit() != GLEW_OK)
     {
@@ -230,13 +230,13 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
