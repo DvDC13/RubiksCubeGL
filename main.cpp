@@ -159,7 +159,7 @@ bool init_shaders()
 bool init_textures()
 {
     // Rubiks Cube
-    loadBasicTexture("/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/RubiksCubeTextures/classic_color.jpg");
+    loadBasicTexture("/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/RubiksCubeTextures/debug.jpg");
     glBindTexture(GL_TEXTURE_2D, rubiks_cube.get_next_texture_id()); CHECK_GL_ERROR();
     CubeProgram->use(); CHECK_GL_ERROR();
     CubeProgram->set_uniform_1i("tex", 0); CHECK_GL_ERROR();
