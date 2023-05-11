@@ -15,6 +15,7 @@ public:
         : model(glm::mat4(1.0f)),
         vertices_position(cube_vertices),
         colors(cube_colors),
+        texture_coords(texture_uv),
         vao(0)
     {}
 
@@ -26,5 +27,6 @@ public:
     glm::mat4 model;
     const std::vector<GLfloat>& vertices_position;
     const std::vector<GLfloat>& colors;
+    const std::vector<GLfloat>& texture_coords;
     GLuint vao;
 };

@@ -23,5 +23,15 @@ public:
         }
     }
 
+    int get_next_texture_id()
+    {
+        current_texture_id = (current_texture_id + 1) % texture_ids.size();
+        return texture_ids[current_texture_id];
+    }
+
     std::vector<Cube> cubes;
+    std::vector<int> texture_ids;
+    int current_texture_id = -1;
 };
+
+static RubiksCube rubiks_cube;

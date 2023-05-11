@@ -21,10 +21,10 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-static RubiksCube rubiks_cube;
-static SkyBox skybox;
-
+bool init_shaders();
 bool init_objects();
+bool init_textures();
+
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -52,7 +52,7 @@ int main(void)
     glfwMakeContextCurrent(window); CHECK_GL_ERROR();
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); CHECK_GL_ERROR();
     //glfwSetCursorPosCallback(window, mouse_callback); CHECK_GL_ERROR();
-    //glfwSetScrollCallback(window, scroll_callback); CHECK_GL_ERROR();
+    glfwSetScrollCallback(window, scroll_callback); CHECK_GL_ERROR();
 
     if (glewInit() != GLEW_OK)
     {
@@ -64,22 +64,9 @@ int main(void)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); CHECK_GL_ERROR();
     glEnable(GL_CULL_FACE); CHECK_GL_ERROR();
 
-    std::string cube_vertex_shader_path = "shaders/RubiksCubeVS.glsl";
-    std::string cube_fragment_shader_path = "shaders/RubiksCubeFS.glsl";
-    CubeProgram = Program::make_program(cube_vertex_shader_path, cube_fragment_shader_path);
-    if (!CubeProgram)
+    if (!init_shaders())
     {
-        std::cerr << "ERROR::SHADERS::INIT_FAILED::CUBE" << std::endl;
-        return false;
-    }
-
-    std::string skybox_vertex_shader_path = "shaders/SkyboxVS.glsl";
-    std::string skybox_fragment_shader_path = "shaders/SkyboxFS.glsl";
-
-    SkyboxProgram = Program::make_program(skybox_vertex_shader_path, skybox_fragment_shader_path);
-    if (!SkyboxProgram)
-    {
-        std::cerr << "ERROR::SHADERS::INIT_FAILED::SKYBOX" << std::endl;
+        std::cerr << "ERROR::OBJECTS::INIT_FAILED" << std::endl;
         return false;
     }
 
@@ -89,10 +76,11 @@ int main(void)
         return false;
     }
 
-    unsigned int cubemap_texture = loadCubemapTexture(faces);
-
-    SkyboxProgram->use();
-    SkyboxProgram->set_uniform_1i("skybox", 0);
+    if (!init_textures())
+    {
+        std::cerr << "ERROR::TEXTURES::INIT_FAILED" << std::endl;
+        return false;
+    }
 
     while (!glfwWindowShouldClose(window))
     {
@@ -131,7 +119,7 @@ int main(void)
         SkyboxProgram->set_uniform_Mat4fv("projection", projection); CHECK_GL_ERROR();
         glBindVertexArray(skybox.vao); CHECK_GL_ERROR();
         glActiveTexture(GL_TEXTURE0); CHECK_GL_ERROR();
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap_texture); CHECK_GL_ERROR();
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.texture_id); CHECK_GL_ERROR();
         glDrawArrays(GL_TRIANGLES, 0, skybox.vertices_position.size()); CHECK_GL_ERROR();
         glBindVertexArray(0); CHECK_GL_ERROR();
         glDepthFunc(GL_LESS); CHECK_GL_ERROR();
@@ -142,6 +130,46 @@ int main(void)
 
     glfwTerminate();
     return EXIT_SUCCESS;
+}
+
+bool init_shaders()
+{
+    std::string cube_vertex_shader_path = "shaders/RubiksCubeVS.glsl";
+    std::string cube_fragment_shader_path = "shaders/RubiksCubeFS.glsl";
+    CubeProgram = Program::make_program(cube_vertex_shader_path, cube_fragment_shader_path);
+    if (!CubeProgram)
+    {
+        std::cerr << "ERROR::SHADERS::INIT_FAILED::CUBE" << std::endl;
+        return false;
+    }
+
+    std::string skybox_vertex_shader_path = "shaders/SkyboxVS.glsl";
+    std::string skybox_fragment_shader_path = "shaders/SkyboxFS.glsl";
+
+    SkyboxProgram = Program::make_program(skybox_vertex_shader_path, skybox_fragment_shader_path);
+    if (!SkyboxProgram)
+    {
+        std::cerr << "ERROR::SHADERS::INIT_FAILED::SKYBOX" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool init_textures()
+{
+    // Rubiks Cube
+    loadBasicTexture("/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/RubiksCubeTextures/classic_color.jpg");
+    glBindTexture(GL_TEXTURE_2D, rubiks_cube.get_next_texture_id()); CHECK_GL_ERROR();
+    CubeProgram->use(); CHECK_GL_ERROR();
+    CubeProgram->set_uniform_1i("tex", 0); CHECK_GL_ERROR();
+
+    // Skybox
+    skybox.texture_id = loadCubemapTexture(faces);
+    SkyboxProgram->use();
+    SkyboxProgram->set_uniform_1i("skybox", 0);
+
+    return true;
 }
 
 bool init_objects()
@@ -156,10 +184,12 @@ bool init_objects()
         glBindVertexArray(rubiks_cube.cubes[i].vao); CHECK_GL_ERROR();
 
         GLint cube_vbo_position = glGetAttribLocation(CubeProgram->get_program_id(), "position"); CHECK_GL_ERROR();
-        GLint cube_vbo_color = glGetAttribLocation(CubeProgram->get_program_id(), "color"); CHECK_GL_ERROR();
+        //GLint cube_vbo_color = glGetAttribLocation(CubeProgram->get_program_id(), "color"); CHECK_GL_ERROR();
+        GLint cube_vbo_texture = glGetAttribLocation(CubeProgram->get_program_id(), "texture_uv"); CHECK_GL_ERROR();
 
         if (cube_vbo_position != -1) nb_buffer++;
-        if (cube_vbo_color != -1) nb_buffer++;
+        //if (cube_vbo_color != -1) nb_buffer++;
+        if (cube_vbo_texture != -1) nb_buffer++;
 
         GLuint vbos[nb_buffer];
 
@@ -179,7 +209,7 @@ bool init_objects()
             glEnableVertexAttribArray(cube_vbo_position); CHECK_GL_ERROR();
         }
 
-        if (cube_vbo_color == -1)
+        /*if (cube_vbo_color == -1)
         {
             std::cerr << "ERROR::SHADERS::COLOR_NOT_FOUND" << std::endl;
             return false;
@@ -191,6 +221,20 @@ bool init_objects()
 
             glVertexAttribPointer(cube_vbo_color, 3, GL_FLOAT, GL_FALSE, 0, 0); CHECK_GL_ERROR();
             glEnableVertexAttribArray(cube_vbo_color); CHECK_GL_ERROR();
+        }*/
+
+        if (cube_vbo_texture == -1)
+        {
+            std::cerr << "ERROR::SHADERS::TEXTURE_NOT_FOUND" << std::endl;
+            return false;
+        }
+        else
+        {
+            glBindBuffer(GL_ARRAY_BUFFER, vbos[index_buffer++]); CHECK_GL_ERROR();
+            glBufferData(GL_ARRAY_BUFFER, rubiks_cube.cubes[i].texture_coords.size() * sizeof(float), rubiks_cube.cubes[i].texture_coords.data(), GL_STATIC_DRAW); CHECK_GL_ERROR();
+
+            glVertexAttribPointer(cube_vbo_texture, 2, GL_FLOAT, GL_FALSE, 0, 0); CHECK_GL_ERROR();
+            glEnableVertexAttribArray(cube_vbo_texture); CHECK_GL_ERROR();
         }
 
         glBindVertexArray(0); CHECK_GL_ERROR();
@@ -245,6 +289,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+// not working
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     float xpos = static_cast<float>(xposIn);

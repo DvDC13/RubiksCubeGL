@@ -7,10 +7,16 @@
 #include <GL/glew.h>
 #include <stb_image.h>
 
-unsigned int loadBasicTexture(const char *path)
+#include "RubiksCube.h"
+
+void loadBasicTexture(const char *path)
 {
+    stbi_set_flip_vertically_on_load(true);
+
     unsigned int textureID;
     glGenTextures(1, &textureID);
+
+    rubiks_cube.texture_ids.push_back(textureID);
 
     int width, height, nrChannels;
 
@@ -51,12 +57,12 @@ unsigned int loadBasicTexture(const char *path)
         std::cerr << "Failed to load texture" << std::endl;
         stbi_image_free(data);
     }
-
-    return textureID;
 }
 
 unsigned int loadCubemapTexture(std::vector<std::string> faces)
 {
+    stbi_set_flip_vertically_on_load(false);
+
     unsigned int textureID;
 
     glGenTextures(1, &textureID);
