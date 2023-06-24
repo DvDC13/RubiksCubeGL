@@ -287,15 +287,26 @@ void processInput(GLFWwindow *window)
     {
         start_time = std::chrono::high_resolution_clock::now();
         
-        rubiks_cube.cubes[0].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
-        rubiks_cube.cubes[1].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
-        rubiks_cube.cubes[2].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
-        rubiks_cube.cubes[3].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
-        rubiks_cube.cubes[4].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
-        rubiks_cube.cubes[5].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
-        rubiks_cube.cubes[6].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
-        rubiks_cube.cubes[7].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
-        rubiks_cube.cubes[8].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+        rubiks_cube.rotate_face(glm::vec3(-1.0f, 0.0f, 0.0f), 90.0f);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+    {
+        start_time = std::chrono::high_resolution_clock::now();
+        
+        rubiks_cube.rotate_face(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
+    {
+        start_time = std::chrono::high_resolution_clock::now();
+        
+        rubiks_cube.rotate_face(glm::vec3(0.0f, -1.0f, 0.0f), 90.0f);
+    }
+    
+    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+    {
+        rubiks_cube.reset();
     }
 }
 

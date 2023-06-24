@@ -47,6 +47,11 @@ public:
             rotating = false;
             elapsed_time = 0.0f;
             model = glm::rotate(glm::mat4(1.0f), glm::radians(m_angle), m_axis) * model;
+
+            glm::mat4 rotationMat(1.0f);
+            rotationMat = glm::rotate(rotationMat, glm::radians(m_angle), m_axis);
+            center = glm::vec3(rotationMat * glm::vec4(center, 1.0f));
+
             return model;
         }
 
@@ -54,6 +59,13 @@ public:
 
         glm::mat4 new_model = glm::rotate(glm::mat4(1.0f), glm::radians(angle), m_axis) * model;
         return new_model;
+    }
+
+    void reset()
+    {
+        model = glm::mat4(1.0f);
+        rotating = false;
+        elapsed_time = 0.0f;
     }
 
     glm::mat4 model;
@@ -66,5 +78,7 @@ public:
     bool rotating = false;
 
     float m_angle = 0.0f;
-    glm::vec3 m_axis;
+    glm::vec3 m_axis = glm::vec3(0.0f, 0.0f, 0.0f);
+
+    glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f);
 };
