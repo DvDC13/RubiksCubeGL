@@ -103,7 +103,7 @@ int main(void)
             Cube cube = rubiks_cube.cubes[i];
             glBindVertexArray(rubiks_cube.cubes[i].vao); CHECK_GL_ERROR();
         
-            CubeProgram->set_uniform_Mat4fv("model", rubiks_cube.cubes[i].model); CHECK_GL_ERROR();
+            CubeProgram->set_uniform_Mat4fv("model", rubiks_cube.cubes[i].get_model()); CHECK_GL_ERROR();
             CubeProgram->set_uniform_Mat4fv("view", camera.GetViewMatrix()); CHECK_GL_ERROR();
             CubeProgram->set_uniform_Mat4fv("projection", projection); CHECK_GL_ERROR();
 
@@ -159,7 +159,7 @@ bool init_shaders()
 bool init_textures()
 {
     // Rubiks Cube
-    loadBasicTexture("/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/RubiksCubeTextures/debug.jpg");
+    loadBasicTexture("/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/RubiksCubeTextures/opengl.png");
     glBindTexture(GL_TEXTURE_2D, rubiks_cube.get_next_texture_id()); CHECK_GL_ERROR();
     CubeProgram->use(); CHECK_GL_ERROR();
     CubeProgram->set_uniform_1i("tex", 0); CHECK_GL_ERROR();
@@ -282,6 +282,21 @@ void processInput(GLFWwindow *window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+    {
+        start_time = std::chrono::high_resolution_clock::now();
+        
+        rubiks_cube.cubes[0].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+        rubiks_cube.cubes[1].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+        rubiks_cube.cubes[2].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+        rubiks_cube.cubes[3].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+        rubiks_cube.cubes[4].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+        rubiks_cube.cubes[5].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+        rubiks_cube.cubes[6].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+        rubiks_cube.cubes[7].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+        rubiks_cube.cubes[8].rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+    }
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)

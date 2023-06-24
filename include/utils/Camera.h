@@ -22,7 +22,7 @@ enum Camera_Movement
 // Default camera values
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-const float SPEED = 5.5f;
+const float SPEED = 12.5f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
 
@@ -46,7 +46,7 @@ public:
     float Zoom;
 
     // constructor with vectors
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+    Camera(glm::vec3 position = glm::vec3(3.0f, 2.0f, 5.0f), glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
     {
         float distance = 10.0f;
         Position = Target - (distance * Front);
@@ -66,10 +66,17 @@ public:
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         float velocity = MovementSpeed * deltaTime;
-        if (direction == FORWARD)
-            Position += Front * velocity;
-        if (direction == BACKWARD)
-            Position -= Front * velocity;
+ 
+        if (direction == FORWARD || direction == BACKWARD)
+        {
+            float sign = (direction == FORWARD) ? 1.0f : -1.0f;
+            glm::vec3 targetToPos = Position - Target;
+            float angle = sign * velocity * 0.1f;
+            glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), angle, Right);
+            glm::vec4 newPos = glm::vec4(targetToPos, 1.0f) * rotationMatrix;
+            Position = Target + glm::vec3(newPos);
+        }
+
         if (direction == LEFT || direction == RIGHT)
         {
             float sign = (direction == LEFT) ? 1.0f : -1.0f;
