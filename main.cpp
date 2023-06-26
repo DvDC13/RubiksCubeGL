@@ -191,12 +191,10 @@ bool init_objects()
         glGenVertexArrays(1, &rubiks_cube.cubes[i].vao); CHECK_GL_ERROR();
         glBindVertexArray(rubiks_cube.cubes[i].vao); CHECK_GL_ERROR();
 
-        GLint cube_vbo_position = glGetAttribLocation(CubeProgram->get_program_id(), "position"); CHECK_GL_ERROR();
-        //GLint cube_vbo_color = glGetAttribLocation(CubeProgram->get_program_id(), "color"); CHECK_GL_ERROR();
+        GLint cube_vbo_position = glGetAttribLocation(CubeProgram->get_program_id(), "position"); CHECK_GL_ERROR()
         GLint cube_vbo_texture = glGetAttribLocation(CubeProgram->get_program_id(), "texture_uv"); CHECK_GL_ERROR();
 
-        if (cube_vbo_position != -1) nb_buffer++;
-        //if (cube_vbo_color != -1) nb_buffer++;
+        if (cube_vbo_position != -1) nb_buffer++;\
         if (cube_vbo_texture != -1) nb_buffer++;
 
         GLuint vbos[nb_buffer];
@@ -216,20 +214,6 @@ bool init_objects()
             glVertexAttribPointer(cube_vbo_position, 3, GL_FLOAT, GL_FALSE, 0, 0); CHECK_GL_ERROR();
             glEnableVertexAttribArray(cube_vbo_position); CHECK_GL_ERROR();
         }
-
-        /*if (cube_vbo_color == -1)
-        {
-            std::cerr << "ERROR::SHADERS::COLOR_NOT_FOUND" << std::endl;
-            return false;
-        }
-        else
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, vbos[index_buffer++]); CHECK_GL_ERROR();
-            glBufferData(GL_ARRAY_BUFFER, rubiks_cube.cubes[i].colors.size() * sizeof(float), rubiks_cube.cubes[i].colors.data(), GL_STATIC_DRAW); CHECK_GL_ERROR();
-
-            glVertexAttribPointer(cube_vbo_color, 3, GL_FLOAT, GL_FALSE, 0, 0); CHECK_GL_ERROR();
-            glEnableVertexAttribArray(cube_vbo_color); CHECK_GL_ERROR();
-        }*/
 
         if (cube_vbo_texture == -1)
         {
