@@ -3,6 +3,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <glob.h>
+
 #include "Error.h"
 #include "Program.h"
 #include "Texture.h"
@@ -159,7 +161,13 @@ bool init_shaders()
 bool init_textures()
 {
     // Rubiks Cube
-    loadBasicTexture("/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/RubiksCubeTextures/opengl.png");
+    glob_t glob_result;
+    glob("/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/RubiksCubeTextures/*", GLOB_TILDE, NULL, &glob_result);
+    for (unsigned int i = 0; i < glob_result.gl_pathc; ++i)
+    {
+        loadBasicTexture(glob_result.gl_pathv[i]);
+    }
+
     glBindTexture(GL_TEXTURE_2D, rubiks_cube.get_next_texture_id()); CHECK_GL_ERROR();
     CubeProgram->use(); CHECK_GL_ERROR();
     CubeProgram->set_uniform_1i("tex", 0); CHECK_GL_ERROR();
@@ -274,34 +282,92 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    if ( glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
+    {
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(0.0f, 1.0f, 0.0f), 90);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(0.0f, 1.0f, 0.0f), -90);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(0.0f, -1.0f, 0.0f), -90);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(0.0f, -1.0f, 0.0f), 90);
+    }
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
     {
-        start_time = std::chrono::high_resolution_clock::now();
-        
-        rubiks_cube.rotate_face(glm::vec3(-1.0f, 0.0f, 0.0f), 90.0f);
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(1.0f, 0.0f, 0.0f), -90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     {
-        start_time = std::chrono::high_resolution_clock::now();
-        
-        rubiks_cube.rotate_face(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(1.0f, 0.0f, 0.0f), 90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
     {
-        start_time = std::chrono::high_resolution_clock::now();
-        
-        rubiks_cube.rotate_face(glm::vec3(0.0f, -1.0f, 0.0f), 90.0f);
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(-1.0f, 0.0f, 0.0f), -90);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(-1.0f, 0.0f, 0.0f), 90);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+    {
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(0.0f, 0.0f, 1.0f), -90);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(0.0f, 0.0f, 1.0f), 90);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+    {
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(0.0f, 0.0f, -1.0f), -90);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(glm::vec3(0.0f, 0.0f, -1.0f), 90);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        glBindTexture(GL_TEXTURE_2D, rubiks_cube.get_next_texture_id()); CHECK_GL_ERROR();
+        CubeProgram->use(); CHECK_GL_ERROR();
+        CubeProgram->set_uniform_1i("tex", 0); CHECK_GL_ERROR();
     }
     
     if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)

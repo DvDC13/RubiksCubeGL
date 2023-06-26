@@ -52,7 +52,7 @@ public:
                 for (int z = -1; z <= 1; z+=1)
                 {
                     int index = (x + 1) * 9 + (y + 1) * 3 + (z + 1);
-                    cubes[index].reset();
+                    cubes[index].reset(x, y, z);
                     cubes[index].translate(glm::vec3(x, y, z));
                 }
             }

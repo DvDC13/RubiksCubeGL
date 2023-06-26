@@ -48,7 +48,7 @@ public:
     // constructor with vectors
     Camera(glm::vec3 position = glm::vec3(3.0f, 2.0f, 5.0f), glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
     {
-        float distance = 10.0f;
+        float distance = 8.0f;
         Position = Target - (distance * Front);
         WorldUp = up;
         Yaw = yaw;

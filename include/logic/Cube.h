@@ -61,10 +61,13 @@ public:
         return new_model;
     }
 
-    void reset()
+    void reset(int x, int y, int z)
     {
         model = glm::mat4(1.0f);
         rotating = false;
+        
+        center = glm::vec3(x, y, z);
+
         elapsed_time = 0.0f;
     }
 
