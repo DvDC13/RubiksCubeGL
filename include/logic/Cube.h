@@ -51,6 +51,12 @@ public:
             glm::mat4 rotationMat(1.0f);
             rotationMat = glm::rotate(rotationMat, glm::radians(m_angle), m_axis);
             center = glm::vec3(rotationMat * glm::vec4(center, 1.0f));
+            
+            float xCenter = std::round(center.x);
+            float yCenter = std::round(center.y);
+            float zCenter = std::round(center.z);
+
+            center = glm::vec3(xCenter, yCenter, zCenter);
 
             return model;
         }

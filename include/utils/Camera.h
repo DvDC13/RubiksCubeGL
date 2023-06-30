@@ -90,9 +90,8 @@ public:
         updateCameraVectors();
     }
 
-    // Not working
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
+    void ProcessMouseMovement(float xoffset, float yoffset, float deltaTime, GLboolean constrainPitch = true)
     {
         xoffset *= MouseSensitivity;
         yoffset *= MouseSensitivity;
@@ -108,6 +107,20 @@ public:
             if (Pitch < -89.0f)
                 Pitch = -89.0f;
         }
+
+        // use deltaTime to make the rotation independent of the framerate
+        Pitch *= deltaTime * 3.0f;
+        Yaw *= deltaTime * 3.0f;
+
+        glm::vec3 targetToPos = Position - Target;
+        glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), -Pitch, Right);
+        glm::vec4 newPos = glm::vec4(targetToPos, 1.0f) * rotationMatrix;
+        Position = Target + glm::vec3(newPos);
+
+        targetToPos = Position - Target;
+        rotationMatrix = glm::rotate(glm::mat4(1.0f), Yaw, WorldUp);
+        newPos = glm::vec4(targetToPos, 1.0f) * rotationMatrix;
+        Position = Target + glm::vec3(newPos);
 
         // update Front, Right and Up Vectors using the updated Euler angles
         updateCameraVectors();

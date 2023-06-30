@@ -103,6 +103,11 @@ public:
         glUniform1i(getUniformLocation(name), value); CHECK_GL_ERROR();
     }
 
+    void set_uniform_1f(const std::string& name, float value)
+    {
+        glUniform1f(getUniformLocation(name), value); CHECK_GL_ERROR();
+    }
+
     void set_uniform_Mat4fv(const std::string& name, const glm::mat4& matrix, GLboolean transpose = GL_FALSE)
     {
         glUniformMatrix4fv(getUniformLocation(name), 1, transpose, &matrix[0][0]); CHECK_GL_ERROR();

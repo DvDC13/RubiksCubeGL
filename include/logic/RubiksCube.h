@@ -36,11 +36,24 @@ public:
         {
             Cube& cube = cubes[i];
             GLfloat dot = glm::dot(cube.center, axis);
-            if (dot > 0.9f)
+            if (dot > 0.0f)
             {
                 cube.rotate(axis, angle);
             }
         }
+    }
+
+    void shuffle()
+    {
+        int axis = rand() % 3;
+        int direction = rand() % 2;
+        int angle = rand() % 3 + 1;
+        if (direction == 0) angle *= -1;
+
+        glm::vec3 rotation_axis = glm::vec3(0.0f);
+        rotation_axis[axis] = angle * 1.0f;
+
+        rotate_face(rotation_axis, angle * 90.0f);
     }
 
     void reset()
@@ -62,6 +75,7 @@ public:
     std::vector<Cube> cubes;
     std::vector<int> texture_ids;
     int current_texture_id = -1;
+    float opacity = 1.0f;
 };
 
 static RubiksCube rubiks_cube;

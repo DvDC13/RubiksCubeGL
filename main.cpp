@@ -19,6 +19,8 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = (float)SCREEN_WIDTH / 2.0;
 float lastY = (float)SCREEN_HEIGHT / 2.0;
 bool firstMouse = true;
+bool swapTextures = true;
+bool isRotating = false;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -53,7 +55,6 @@ int main(void)
 
     glfwMakeContextCurrent(window); CHECK_GL_ERROR();
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); CHECK_GL_ERROR();
-    //glfwSetCursorPosCallback(window, mouse_callback); CHECK_GL_ERROR();
     glfwSetScrollCallback(window, scroll_callback); CHECK_GL_ERROR();
 
     if (glewInit() != GLEW_OK)
@@ -64,7 +65,12 @@ int main(void)
 
     glEnable(GL_DEPTH_TEST); CHECK_GL_ERROR();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); CHECK_GL_ERROR();
+
+    glEnable(GL_BLEND); CHECK_GL_ERROR();
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); CHECK_GL_ERROR();
+
     glEnable(GL_CULL_FACE); CHECK_GL_ERROR();
+    glCullFace(GL_BACK); CHECK_GL_ERROR();
 
     if (!init_shaders())
     {
@@ -97,23 +103,6 @@ int main(void)
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f); CHECK_GL_ERROR();
 
-        CubeProgram->use();
-
-        // Rubiks Cube
-        for (int i = 0; i < rubiks_cube.cubes.size(); i++)
-        {
-            Cube cube = rubiks_cube.cubes[i];
-            glBindVertexArray(rubiks_cube.cubes[i].vao); CHECK_GL_ERROR();
-        
-            CubeProgram->set_uniform_Mat4fv("model", rubiks_cube.cubes[i].get_model()); CHECK_GL_ERROR();
-            CubeProgram->set_uniform_Mat4fv("view", camera.GetViewMatrix()); CHECK_GL_ERROR();
-            CubeProgram->set_uniform_Mat4fv("projection", projection); CHECK_GL_ERROR();
-
-            glDrawArrays(GL_TRIANGLES, 0, rubiks_cube.cubes[i].vertices_position.size()); CHECK_GL_ERROR();
-        }
-
-        glBindVertexArray(0); CHECK_GL_ERROR();
-
         // Skybox
         glDepthFunc(GL_LEQUAL); CHECK_GL_ERROR();
         SkyboxProgram->use(); CHECK_GL_ERROR();
@@ -125,6 +114,24 @@ int main(void)
         glDrawArrays(GL_TRIANGLES, 0, skybox.vertices_position.size()); CHECK_GL_ERROR();
         glBindVertexArray(0); CHECK_GL_ERROR();
         glDepthFunc(GL_LESS); CHECK_GL_ERROR();
+
+        CubeProgram->use();
+        // Rubiks Cube
+        for (int i = 0; i < rubiks_cube.cubes.size(); i++)
+        {
+            Cube cube = rubiks_cube.cubes[i];
+            glBindVertexArray(rubiks_cube.cubes[i].vao); CHECK_GL_ERROR();
+        
+            CubeProgram->set_uniform_Mat4fv("model", rubiks_cube.cubes[i].get_model()); CHECK_GL_ERROR();
+            CubeProgram->set_uniform_Mat4fv("view", camera.GetViewMatrix()); CHECK_GL_ERROR();
+            CubeProgram->set_uniform_Mat4fv("projection", projection); CHECK_GL_ERROR();
+
+            CubeProgram->set_uniform_1f("opacity", rubiks_cube.opacity); CHECK_GL_ERROR();
+
+            glDrawArrays(GL_TRIANGLES, 0, rubiks_cube.cubes[i].vertices_position.size()); CHECK_GL_ERROR();
+        }
+
+        glBindVertexArray(0); CHECK_GL_ERROR();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -191,7 +198,7 @@ bool init_objects()
         glGenVertexArrays(1, &rubiks_cube.cubes[i].vao); CHECK_GL_ERROR();
         glBindVertexArray(rubiks_cube.cubes[i].vao); CHECK_GL_ERROR();
 
-        GLint cube_vbo_position = glGetAttribLocation(CubeProgram->get_program_id(), "position"); CHECK_GL_ERROR()
+        GLint cube_vbo_position = glGetAttribLocation(CubeProgram->get_program_id(), "position"); CHECK_GL_ERROR();
         GLint cube_vbo_texture = glGetAttribLocation(CubeProgram->get_program_id(), "texture_uv"); CHECK_GL_ERROR();
 
         if (cube_vbo_position != -1) nb_buffer++;\
@@ -275,83 +282,303 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 
-    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_L) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_U) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE &&
+        glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
     {
+        isRotating = false;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS && isRotating == false)
+    {
+        isRotating = true;
+
         start_time = std::chrono::system_clock::now();
         rubiks_cube.rotate_face(glm::vec3(0.0f, 1.0f, 0.0f), 90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && isRotating == false)
     {
+        isRotating = true;
+
         start_time = std::chrono::system_clock::now();
         rubiks_cube.rotate_face(glm::vec3(0.0f, 1.0f, 0.0f), -90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && isRotating == false)
     {
+        isRotating = true;
+
         start_time = std::chrono::system_clock::now();
         rubiks_cube.rotate_face(glm::vec3(0.0f, -1.0f, 0.0f), -90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && isRotating == false)
     {
+        isRotating = true;
+
         start_time = std::chrono::system_clock::now();
         rubiks_cube.rotate_face(glm::vec3(0.0f, -1.0f, 0.0f), 90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && isRotating == false)
     {
+        isRotating = true;
+
+        float z = std::round(camera.Front.z);
+        float x = std::round(camera.Front.x);
+
+        float max = std::max(std::abs(x), std::abs(z));
+
+        glm::vec3 axis = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        if (max == std::abs(z))
+        {
+            axis = glm::vec3(-z, 0.0f, 0.0f);
+        }
+        else
+        {
+            axis = glm::vec3(0.0f, 0.0f, x);
+        }
+
         start_time = std::chrono::system_clock::now();
-        rubiks_cube.rotate_face(glm::vec3(1.0f, 0.0f, 0.0f), -90);
+        rubiks_cube.rotate_face(axis, -90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && isRotating == false)
     {
+        isRotating = true;
+
+        float z = std::round(camera.Front.z);
+        float x = std::round(camera.Front.x);
+
+        float max = std::max(std::abs(x), std::abs(z));
+
+        glm::vec3 axis = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        if (max == std::abs(z))
+        {
+            axis = glm::vec3(-z, 0.0f, 0.0f);
+        }
+        else
+        {
+            axis = glm::vec3(0.0f, 0.0f, x);
+        }
+
         start_time = std::chrono::system_clock::now();
-        rubiks_cube.rotate_face(glm::vec3(1.0f, 0.0f, 0.0f), 90);
+        rubiks_cube.rotate_face(axis, 90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS && isRotating == false)
     {
+        isRotating = true;
+
+        float z = std::round(camera.Front.z);
+        float x = std::round(camera.Front.x);
+
+        float max = std::max(std::abs(x), std::abs(z));
+
+        glm::vec3 axis = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        if (max == std::abs(z))
+        {
+            axis = glm::vec3(z, 0.0f, 0.0f);
+        }
+        else
+        {
+            axis = glm::vec3(0.0f, 0.0f, -x);
+        }
+
         start_time = std::chrono::system_clock::now();
-        rubiks_cube.rotate_face(glm::vec3(-1.0f, 0.0f, 0.0f), -90);
+        rubiks_cube.rotate_face(axis, -90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && isRotating == false)
     {
+        isRotating = true;
+
+        float z = std::round(camera.Front.z);
+        float x = std::round(camera.Front.x);
+
+        float max = std::max(std::abs(x), std::abs(z));
+
+        glm::vec3 axis = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        if (max == std::abs(z))
+        {
+            axis = glm::vec3(z, 0.0f, 0.0f);
+        }
+        else
+        {
+            axis = glm::vec3(0.0f, 0.0f, -x);
+        }
+
         start_time = std::chrono::system_clock::now();
-        rubiks_cube.rotate_face(glm::vec3(-1.0f, 0.0f, 0.0f), 90);
+        rubiks_cube.rotate_face(axis, 90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && isRotating == false)
     {
+        isRotating = true;
+
+        float z = std::round(camera.Front.z);
+        float x = std::round(camera.Front.x);
+
+        float max = std::max(std::abs(x), std::abs(z));
+
+        glm::vec3 axis = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        if (max == std::abs(x))
+        {
+            axis = glm::vec3(-x, 0.0f, 0.0f);
+        }
+        else
+        {
+            axis = glm::vec3(0.0f, 0.0f, -z);
+        }
+
         start_time = std::chrono::system_clock::now();
-        rubiks_cube.rotate_face(glm::vec3(0.0f, 0.0f, 1.0f), -90);
+        rubiks_cube.rotate_face(axis, -90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && isRotating == false)
     {
+        isRotating = true;
+
+        float z = std::round(camera.Front.z);
+        float x = std::round(camera.Front.x);
+
+        float max = std::max(std::abs(x), std::abs(z));
+
+        glm::vec3 axis = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        if (max == std::abs(x))
+        {
+            axis = glm::vec3(-x, 0.0f, 0.0f);
+        }
+        else
+        {
+            axis = glm::vec3(0.0f, 0.0f, -z);
+        }
+
         start_time = std::chrono::system_clock::now();
-        rubiks_cube.rotate_face(glm::vec3(0.0f, 0.0f, 1.0f), 90);
+        rubiks_cube.rotate_face(axis, 90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && isRotating == false)
     {
+        isRotating = true;
+
+        float z = std::round(camera.Front.z);
+        float x = std::round(camera.Front.x);
+
+        float max = std::max(std::abs(x), std::abs(z));
+
+        glm::vec3 axis = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        if (max == std::abs(x))
+        {
+            axis = glm::vec3(x, 0.0f, 0.0f);
+        }
+        else
+        {
+            axis = glm::vec3(0.0f, 0.0f, z);
+        }
+
         start_time = std::chrono::system_clock::now();
-        rubiks_cube.rotate_face(glm::vec3(0.0f, 0.0f, -1.0f), -90);
+        rubiks_cube.rotate_face(axis, -90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && isRotating == false)
     {
+        isRotating = true;
+
+        float z = std::round(camera.Front.z);
+        float x = std::round(camera.Front.x);
+
+        float max = std::max(std::abs(x), std::abs(z));
+
+        glm::vec3 axis = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        if (max == std::abs(x))
+        {
+            axis = glm::vec3(x, 0.0f, 0.0f);
+        }
+        else
+        {
+            axis = glm::vec3(0.0f, 0.0f, z);
+        }
+
         start_time = std::chrono::system_clock::now();
-        rubiks_cube.rotate_face(glm::vec3(0.0f, 0.0f, -1.0f), 90);
+        rubiks_cube.rotate_face(axis, 90);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+    {
+        if (rubiks_cube.opacity > 0.0f)
+            rubiks_cube.opacity = 0.5f;
+
+        glDisable(GL_DEPTH_TEST);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        if (rubiks_cube.opacity < 1.0f)
+            rubiks_cube.opacity = 1.0f;
+
+        glDisable(GL_DEPTH_TEST);
     }
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        glBindTexture(GL_TEXTURE_2D, rubiks_cube.get_next_texture_id()); CHECK_GL_ERROR();
-        CubeProgram->use(); CHECK_GL_ERROR();
-        CubeProgram->set_uniform_1i("tex", 0); CHECK_GL_ERROR();
+        if (swapTextures)
+        {        
+            glBindTexture(GL_TEXTURE_2D, rubiks_cube.get_next_texture_id()); CHECK_GL_ERROR();
+            CubeProgram->use(); CHECK_GL_ERROR();
+            CubeProgram->set_uniform_1i("tex", 0); CHECK_GL_ERROR();
+        }
+        swapTextures = false;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+    {
+        swapTextures = true;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        rubiks_cube.shuffle();
+    }
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+    {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+
+        if (firstMouse)
+        {
+            lastX = static_cast<float>(xpos);
+            lastY = static_cast<float>(ypos);
+            firstMouse = false;
+        }
+        else
+        {
+            float xoffset = static_cast<float>(xpos - lastX);
+            float yoffset = static_cast<float>(lastY - ypos);
+
+            lastX = xpos;
+            lastY = ypos;
+
+            camera.ProcessMouseMovement(xoffset, yoffset, deltaTime);
+        }
+    }
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
+    {
+        firstMouse = true;
     }
     
     if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
@@ -363,27 +590,6 @@ void processInput(GLFWwindow *window)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
-}
-
-// not working
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
-{
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-    if (firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-    lastX = xpos;
-    lastY = ypos;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
