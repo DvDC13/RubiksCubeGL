@@ -8,6 +8,7 @@
 #include <stb_image.h>
 
 #include "RubiksCube.h"
+#include "Skybox.h"
 
 void loadBasicTexture(const char *path)
 {
@@ -64,8 +65,9 @@ unsigned int loadCubemapTexture(std::vector<std::string> faces)
     stbi_set_flip_vertically_on_load(false);
 
     unsigned int textureID;
-
     glGenTextures(1, &textureID);
+
+    skybox.texture_ids.push_back(textureID);
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 

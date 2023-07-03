@@ -222,11 +222,29 @@ static const std::vector<GLfloat> skybox_vertices = {
      10.0, -10.0,  10.0
 };
 
-static const std::vector<std::string> faces = {
-    "/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/SkyboxTextures/right.jpg",
-    "/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/SkyboxTextures/left.jpg",
-    "/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/SkyboxTextures/top.jpg",
-    "/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/SkyboxTextures/bottom.jpg",
-    "/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/SkyboxTextures/front.jpg",
-    "/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/SkyboxTextures/back.jpg"
+static const std::vector<std::string> Skyfaces = {
+    "SkyboxTextures/Sky/right.jpg",
+    "SkyboxTextures/Sky/left.jpg",
+    "SkyboxTextures/Sky/top.jpg",
+    "SkyboxTextures/Sky/bottom.jpg",
+    "SkyboxTextures/Sky/front.jpg",
+    "SkyboxTextures/Sky/back.jpg"
+};
+
+static const std::vector<std::string> Volcanofaces = {
+    "SkyboxTextures/Volcano/right.png",
+    "SkyboxTextures/Volcano/left.png",
+    "SkyboxTextures/Volcano/top.png",
+    "SkyboxTextures/Volcano/bottom.png",
+    "SkyboxTextures/Volcano/front.png",
+    "SkyboxTextures/Volcano/back.png"
+};
+
+static const std::vector<std::string> Blackfaces = {
+    "SkyboxTextures/Black/right.jpg",
+    "SkyboxTextures/Black/left.jpg",
+    "SkyboxTextures/Black/top.jpg",
+    "SkyboxTextures/Black/bottom.jpg",
+    "SkyboxTextures/Black/front.jpg",
+    "SkyboxTextures/Black/back.jpg"
 };

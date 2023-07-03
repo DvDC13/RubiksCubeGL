@@ -20,7 +20,7 @@ enum Camera_Movement
 };
 
 // Default camera values
-const float YAW = -90.0f;
+const float YAW = 0.0f;
 const float PITCH = 0.0f;
 const float SPEED = 12.5f;
 const float SENSITIVITY = 0.1f;
@@ -134,6 +134,19 @@ public:
             Zoom = 1.0f;
         if (Zoom > 45.0f)
             Zoom = 45.0f;
+    }
+
+    // reset camera to default values
+    void Reset()
+    {
+        Target = glm::vec3(0.0f, 0.0f, 0.0f);
+        Front = glm::vec3(0.0f, 0.0f, -1.0f);
+        float distance = 8.0f;
+        Position = Target - (distance * Front);
+        WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+        Yaw = YAW;
+        Pitch = PITCH;
+        updateCameraVectors();
     }
 
 private:

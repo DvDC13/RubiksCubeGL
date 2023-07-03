@@ -19,7 +19,8 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = (float)SCREEN_WIDTH / 2.0;
 float lastY = (float)SCREEN_HEIGHT / 2.0;
 bool firstMouse = true;
-bool swapTextures = true;
+bool swapCubeTextures = true;
+bool swapSkyboxTextures = true;
 bool isRotating = false;
 
 float deltaTime = 0.0f;
@@ -110,7 +111,6 @@ int main(void)
         SkyboxProgram->set_uniform_Mat4fv("projection", projection); CHECK_GL_ERROR();
         glBindVertexArray(skybox.vao); CHECK_GL_ERROR();
         glActiveTexture(GL_TEXTURE0); CHECK_GL_ERROR();
-        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.texture_id); CHECK_GL_ERROR();
         glDrawArrays(GL_TRIANGLES, 0, skybox.vertices_position.size()); CHECK_GL_ERROR();
         glBindVertexArray(0); CHECK_GL_ERROR();
         glDepthFunc(GL_LESS); CHECK_GL_ERROR();
@@ -169,7 +169,8 @@ bool init_textures()
 {
     // Rubiks Cube
     glob_t glob_result;
-    glob("/home/david/Desktop/Image/POGL/PROJET/RubiksCubeGL/RubiksCubeTextures/*", GLOB_TILDE, NULL, &glob_result);
+    glob("RubiksCubeTextures/*", GLOB_TILDE, NULL, &glob_result);
+
     for (unsigned int i = 0; i < glob_result.gl_pathc; ++i)
     {
         loadBasicTexture(glob_result.gl_pathv[i]);
@@ -180,7 +181,9 @@ bool init_textures()
     CubeProgram->set_uniform_1i("tex", 0); CHECK_GL_ERROR();
 
     // Skybox
-    skybox.texture_id = loadCubemapTexture(faces);
+    skybox.current_texture_id = loadCubemapTexture(Skyfaces);
+    skybox.current_texture_id = loadCubemapTexture(Volcanofaces);
+    skybox.current_texture_id = loadCubemapTexture(Blackfaces);
     SkyboxProgram->use();
     SkyboxProgram->set_uniform_1i("skybox", 0);
 
@@ -201,7 +204,7 @@ bool init_objects()
         GLint cube_vbo_position = glGetAttribLocation(CubeProgram->get_program_id(), "position"); CHECK_GL_ERROR();
         GLint cube_vbo_texture = glGetAttribLocation(CubeProgram->get_program_id(), "texture_uv"); CHECK_GL_ERROR();
 
-        if (cube_vbo_position != -1) nb_buffer++;\
+        if (cube_vbo_position != -1) nb_buffer++;
         if (cube_vbo_texture != -1) nb_buffer++;
 
         GLuint vbos[nb_buffer];
@@ -292,14 +295,6 @@ void processInput(GLFWwindow *window)
         isRotating = false;
     }
 
-    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS && isRotating == false)
-    {
-        isRotating = true;
-
-        start_time = std::chrono::system_clock::now();
-        rubiks_cube.rotate_face(glm::vec3(0.0f, 1.0f, 0.0f), 90);
-    }
-
     if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && isRotating == false)
     {
         isRotating = true;
@@ -308,12 +303,12 @@ void processInput(GLFWwindow *window)
         rubiks_cube.rotate_face(glm::vec3(0.0f, 1.0f, 0.0f), -90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && isRotating == false)
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS && isRotating == false)
     {
         isRotating = true;
 
         start_time = std::chrono::system_clock::now();
-        rubiks_cube.rotate_face(glm::vec3(0.0f, -1.0f, 0.0f), -90);
+        rubiks_cube.rotate_face(glm::vec3(0.0f, 1.0f, 0.0f), 90);
     }
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && isRotating == false)
@@ -324,28 +319,12 @@ void processInput(GLFWwindow *window)
         rubiks_cube.rotate_face(glm::vec3(0.0f, -1.0f, 0.0f), 90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && isRotating == false)
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && isRotating == false)
     {
         isRotating = true;
 
-        float z = std::round(camera.Front.z);
-        float x = std::round(camera.Front.x);
-
-        float max = std::max(std::abs(x), std::abs(z));
-
-        glm::vec3 axis = glm::vec3(0.0f, 0.0f, 0.0f);
-
-        if (max == std::abs(z))
-        {
-            axis = glm::vec3(-z, 0.0f, 0.0f);
-        }
-        else
-        {
-            axis = glm::vec3(0.0f, 0.0f, x);
-        }
-
         start_time = std::chrono::system_clock::now();
-        rubiks_cube.rotate_face(axis, -90);
+        rubiks_cube.rotate_face(glm::vec3(0.0f, -1.0f, 0.0f), -90);
     }
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && isRotating == false)
@@ -372,7 +351,7 @@ void processInput(GLFWwindow *window)
         rubiks_cube.rotate_face(axis, 90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS && isRotating == false)
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && isRotating == false)
     {
         isRotating = true;
 
@@ -385,11 +364,11 @@ void processInput(GLFWwindow *window)
 
         if (max == std::abs(z))
         {
-            axis = glm::vec3(z, 0.0f, 0.0f);
+            axis = glm::vec3(-z, 0.0f, 0.0f);
         }
         else
         {
-            axis = glm::vec3(0.0f, 0.0f, -x);
+            axis = glm::vec3(0.0f, 0.0f, x);
         }
 
         start_time = std::chrono::system_clock::now();
@@ -420,7 +399,7 @@ void processInput(GLFWwindow *window)
         rubiks_cube.rotate_face(axis, 90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && isRotating == false)
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS && isRotating == false)
     {
         isRotating = true;
 
@@ -431,13 +410,13 @@ void processInput(GLFWwindow *window)
 
         glm::vec3 axis = glm::vec3(0.0f, 0.0f, 0.0f);
 
-        if (max == std::abs(x))
+        if (max == std::abs(z))
         {
-            axis = glm::vec3(-x, 0.0f, 0.0f);
+            axis = glm::vec3(z, 0.0f, 0.0f);
         }
         else
         {
-            axis = glm::vec3(0.0f, 0.0f, -z);
+            axis = glm::vec3(0.0f, 0.0f, -x);
         }
 
         start_time = std::chrono::system_clock::now();
@@ -468,7 +447,7 @@ void processInput(GLFWwindow *window)
         rubiks_cube.rotate_face(axis, 90);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && isRotating == false)
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && isRotating == false)
     {
         isRotating = true;
 
@@ -481,11 +460,11 @@ void processInput(GLFWwindow *window)
 
         if (max == std::abs(x))
         {
-            axis = glm::vec3(x, 0.0f, 0.0f);
+            axis = glm::vec3(-x, 0.0f, 0.0f);
         }
         else
         {
-            axis = glm::vec3(0.0f, 0.0f, z);
+            axis = glm::vec3(0.0f, 0.0f, -z);
         }
 
         start_time = std::chrono::system_clock::now();
@@ -516,36 +495,72 @@ void processInput(GLFWwindow *window)
         rubiks_cube.rotate_face(axis, 90);
     }
 
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && isRotating == false)
+    {
+        isRotating = true;
+
+        float z = std::round(camera.Front.z);
+        float x = std::round(camera.Front.x);
+
+        float max = std::max(std::abs(x), std::abs(z));
+
+        glm::vec3 axis = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        if (max == std::abs(x))
+        {
+            axis = glm::vec3(x, 0.0f, 0.0f);
+        }
+        else
+        {
+            axis = glm::vec3(0.0f, 0.0f, z);
+        }
+
+        start_time = std::chrono::system_clock::now();
+        rubiks_cube.rotate_face(axis, -90);
+    }
+
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
     {
-        if (rubiks_cube.opacity > 0.0f)
-            rubiks_cube.opacity = 0.5f;
-
+        rubiks_cube.opacity = 0.5f;
         glDisable(GL_DEPTH_TEST);
     }
 
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     {
-        if (rubiks_cube.opacity < 1.0f)
-            rubiks_cube.opacity = 1.0f;
-
-        glDisable(GL_DEPTH_TEST);
+        rubiks_cube.opacity = 1.0f;
+        glEnable(GL_DEPTH_TEST);
     }
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        if (swapTextures)
+        if (swapCubeTextures)
         {        
             glBindTexture(GL_TEXTURE_2D, rubiks_cube.get_next_texture_id()); CHECK_GL_ERROR();
             CubeProgram->use(); CHECK_GL_ERROR();
             CubeProgram->set_uniform_1i("tex", 0); CHECK_GL_ERROR();
         }
-        swapTextures = false;
+        swapCubeTextures = false;
     }
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
     {
-        swapTextures = true;
+        swapCubeTextures = true;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+    {
+        if (swapSkyboxTextures)
+        {
+            glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.get_next_texture_id()); CHECK_GL_ERROR();
+            SkyboxProgram->use(); CHECK_GL_ERROR();
+            SkyboxProgram->set_uniform_1i("skybox", 0); CHECK_GL_ERROR();
+        }
+        swapSkyboxTextures = false;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_RELEASE)
+    {
+        swapSkyboxTextures = true;
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -579,6 +594,11 @@ void processInput(GLFWwindow *window)
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
     {
         firstMouse = true;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+    {
+        camera.Reset();
     }
     
     if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
