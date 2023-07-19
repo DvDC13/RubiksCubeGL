@@ -23,4 +23,12 @@ RubiksCubeGL is an interactive OpenGL-based visualization program that allows us
 4. ```make```
 5. ```./rubiksCubeGL```
 
+# Image Examples
+
+![Drag Racing](./examples/examples1.png)
+![Drag Racing](./examples/examples2.png)
+![Drag Racing](./examples/examples3.png)
+
 # Controls
+
+![Drag Racing](./guide/guide.png)
